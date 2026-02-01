@@ -23,4 +23,9 @@ quote-style = "double"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
-ignore = ["E501"]
+ignore = [
+    "E501",   # line too long
+    "F403",   # star imports (required by FastHTML)
+    "F405",   # may be undefined from star import (FastHTML pattern)
+    "F811",   # redefinition (FastHTML route pattern)
+]
