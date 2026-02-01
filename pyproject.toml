@@ -1,0 +1,26 @@
+[project]
+name = "mission-control"
+version = "0.1.0"
+description = "Mission Control UI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "python-fasthtml>=0.10.0",
+    "kubernetes>=31.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
