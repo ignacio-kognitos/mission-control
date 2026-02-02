@@ -86,7 +86,16 @@ def get_book_connections(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
         bc_resource = dyn_client.resources.get(kind="BookConnection")
         connections = bc_resource.get(namespace=namespace)
 
-        return [_extract_resource_info(conn) for conn in connections.items]
+        return [
+            {
+                "name": conn.metadata.name,
+                "namespace": conn.metadata.namespace,
+                "created": conn.metadata.creationTimestamp,
+                "label_name": (conn.metadata.labels or {}).get("book_name", ""),
+                "label_version": (conn.metadata.labels or {}).get("book_version", ""),
+            }
+            for conn in connections.items
+        ]
     except Exception:
         return []
 
