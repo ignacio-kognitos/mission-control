@@ -145,6 +145,24 @@ def resource_table(headers: list[str], rows: list):
     )
 
 
+def filterable_table(headers: list[str], rows: list, table_id: str = "resource-table"):
+    """Render a table with a search filter input for filtering by name."""
+    return Div(
+        Input(
+            type="text",
+            placeholder="Filter by name...",
+            id=f"{table_id}-filter",
+            oninput=f"filterTable('{table_id}')",
+            style="margin-bottom: 0.5rem; width: 300px;",
+        ),
+        Table(
+            Thead(Tr(*[Th(h) for h in headers])),
+            Tbody(*rows, id=f"{table_id}-body"),
+            id=table_id,
+        ),
+    )
+
+
 def link(text: str, hx_get: str, hx_target: str = "#modal-container", hx_swap: str = "innerHTML"):
     """Render a clickable link."""
     return A(

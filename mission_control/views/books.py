@@ -2,7 +2,7 @@
 
 from fasthtml.common import *
 
-from ..components import link, resource_table
+from ..components import filterable_table, link
 from ..config import DEFAULT_NAMESPACE
 from ..k8s import get_books
 
@@ -22,7 +22,7 @@ def books_content(namespace: str = DEFAULT_NAMESPACE):
 
     return Div(
         H2("Books"),
-        resource_table(headers, rows),
+        filterable_table(headers, rows, "books-table"),
     )
 
 
