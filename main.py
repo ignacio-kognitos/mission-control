@@ -19,9 +19,12 @@ from mission_control.k8s import (
     get_book_connection_manifest,
     get_book_connections,
     get_book_manifest,
+    get_deployment_manifest,
     get_kube_contexts,
     get_pod_logs,
     get_pod_manifest,
+    get_secret_manifest,
+    get_trigger_instance_manifest,
     switch_kube_context,
 )
 from mission_control.url_parser import parse_kognitos_url
@@ -31,6 +34,9 @@ from mission_control.views.book_connections import (
     book_connections_content,
 )
 from mission_control.views.books import books_content
+from mission_control.views.deployments import deployments_content
+from mission_control.views.secrets import secrets_content
+from mission_control.views.trigger_instances import trigger_instances_content
 
 # -----------------------------------------------------------------------------
 # App Setup
@@ -182,6 +188,51 @@ def get(namespace: str, name: str):
     connections = get_book_connections(namespace)
     conn = next((c for c in connections if c["name"] == name), None)
     return book_connection_row(conn) if conn else ""
+
+
+# -----------------------------------------------------------------------------
+# Routes: Trigger Instances
+# -----------------------------------------------------------------------------
+
+
+@rt("/trigger-instances")
+def get(request: Request, namespace: str = DEFAULT_NAMESPACE):
+    return full_page_or_fragment(request, trigger_instances_content(namespace))
+
+
+@rt("/trigger-instance/{namespace}/{name}")
+def get(namespace: str, name: str):
+    return manifest_modal(get_trigger_instance_manifest(name, namespace), f"TriggerInstance: {name}")
+
+
+# -----------------------------------------------------------------------------
+# Routes: Deployments
+# -----------------------------------------------------------------------------
+
+
+@rt("/deployments")
+def get(request: Request, namespace: str = DEFAULT_NAMESPACE):
+    return full_page_or_fragment(request, deployments_content(namespace))
+
+
+@rt("/deployment/{namespace}/{name}")
+def get(namespace: str, name: str):
+    return manifest_modal(get_deployment_manifest(name, namespace), f"Deployment: {name}")
+
+
+# -----------------------------------------------------------------------------
+# Routes: Secrets
+# -----------------------------------------------------------------------------
+
+
+@rt("/secrets")
+def get(request: Request, namespace: str = DEFAULT_NAMESPACE):
+    return full_page_or_fragment(request, secrets_content(namespace))
+
+
+@rt("/secret/{namespace}/{name}")
+def get(namespace: str, name: str):
+    return manifest_modal(get_secret_manifest(name, namespace), f"Secret: {name}")
 
 
 # -----------------------------------------------------------------------------
