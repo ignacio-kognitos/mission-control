@@ -59,6 +59,33 @@ def sidebar():
                     hx_push_url="true",
                 )
             ),
+            Li(
+                A(
+                    "Trigger Instances",
+                    hx_get="/trigger-instances",
+                    hx_target="#main-content",
+                    hx_swap="innerHTML",
+                    hx_push_url="true",
+                )
+            ),
+            Li(
+                A(
+                    "Deployments",
+                    hx_get="/deployments",
+                    hx_target="#main-content",
+                    hx_swap="innerHTML",
+                    hx_push_url="true",
+                )
+            ),
+            Li(
+                A(
+                    "Secrets",
+                    hx_get="/secrets",
+                    hx_target="#main-content",
+                    hx_swap="innerHTML",
+                    hx_push_url="true",
+                )
+            ),
             style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;",
         ),
         style="min-width: 180px; padding: 0.5rem; border-right: 1px solid var(--pico-muted-border-color);",
@@ -142,6 +169,24 @@ def resource_table(headers: list[str], rows: list):
     return Table(
         Thead(Tr(*[Th(h) for h in headers])),
         Tbody(*rows),
+    )
+
+
+def filterable_table(headers: list[str], rows: list, table_id: str = "resource-table"):
+    """Render a table with a search filter input for filtering by name."""
+    return Div(
+        Input(
+            type="text",
+            placeholder="Filter by name...",
+            id=f"{table_id}-filter",
+            oninput=f"filterTable('{table_id}')",
+            style="margin-bottom: 0.5rem; width: 300px;",
+        ),
+        Table(
+            Thead(Tr(*[Th(h) for h in headers])),
+            Tbody(*rows, id=f"{table_id}-body"),
+            id=table_id,
+        ),
     )
 
 

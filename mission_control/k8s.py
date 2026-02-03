@@ -234,3 +234,113 @@ def _parse_memory(mem_str: str) -> str:
     elif mem_str.endswith("M"):
         return f"{mem_str[:-1]} MB"
     return mem_str
+
+
+# -----------------------------------------------------------------------------
+# Trigger Instances
+# -----------------------------------------------------------------------------
+
+
+def get_trigger_instances(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
+    """Get list of TriggerInstance resources from the specified namespace."""
+    try:
+        dyn_client = get_k8s_client()
+        resource = dyn_client.resources.get(kind="TriggerInstance")
+        instances = resource.get(namespace=namespace)
+
+        return [_extract_resource_info(instance) for instance in instances.items]
+    except Exception:
+        return []
+
+
+def get_trigger_instance_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
+    """Get the full manifest of a TriggerInstance resource."""
+    try:
+        dyn_client = get_k8s_client()
+        resource = dyn_client.resources.get(kind="TriggerInstance")
+        instance = resource.get(name=name, namespace=namespace)
+        return yaml.safe_dump(instance.to_dict(), default_flow_style=False)
+    except Exception as e:
+        return f"Error fetching manifest: {e}"
+
+
+# -----------------------------------------------------------------------------
+# Deployments
+# -----------------------------------------------------------------------------
+
+
+def get_deployments(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
+    """Get list of Deployment resources from the specified namespace."""
+    try:
+        dyn_client = get_k8s_client()
+        resource = dyn_client.resources.get(api_version="apps/v1", kind="Deployment")
+        deployments = resource.get(namespace=namespace)
+
+        return [
+            {
+                "name": d.metadata.name,
+                "namespace": d.metadata.namespace,
+                "created": d.metadata.creationTimestamp,
+                "replicas": f"{d.status.readyReplicas or 0}/{d.spec.replicas or 0}",
+                "image": (
+                    d.spec.template.spec.containers[0].image
+                    if d.spec.template.spec.containers
+                    else ""
+                ),
+            }
+            for d in deployments.items
+        ]
+    except Exception:
+        return []
+
+
+def get_deployment_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
+    """Get the full manifest of a Deployment resource."""
+    try:
+        dyn_client = get_k8s_client()
+        resource = dyn_client.resources.get(api_version="apps/v1", kind="Deployment")
+        deployment = resource.get(name=name, namespace=namespace)
+        return yaml.safe_dump(deployment.to_dict(), default_flow_style=False)
+    except Exception as e:
+        return f"Error fetching manifest: {e}"
+
+
+# -----------------------------------------------------------------------------
+# Secrets
+# -----------------------------------------------------------------------------
+
+
+def get_secrets(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
+    """Get list of Secret resources from the specified namespace."""
+    try:
+        dyn_client = get_k8s_client()
+        resource = dyn_client.resources.get(api_version="v1", kind="Secret")
+        secrets = resource.get(namespace=namespace)
+
+        return [
+            {
+                "name": s.metadata.name,
+                "namespace": s.metadata.namespace,
+                "created": s.metadata.creationTimestamp,
+                "type": s.type,
+                "keys": ", ".join(sorted((s.data or {}).keys())),
+            }
+            for s in secrets.items
+        ]
+    except Exception:
+        return []
+
+
+def get_secret_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
+    """Get the full manifest of a Secret resource (keys only, no values)."""
+    try:
+        dyn_client = get_k8s_client()
+        resource = dyn_client.resources.get(api_version="v1", kind="Secret")
+        secret = resource.get(name=name, namespace=namespace)
+        secret_dict = secret.to_dict()
+        # Replace secret values with placeholder for security
+        if "data" in secret_dict and secret_dict["data"]:
+            secret_dict["data"] = {k: "<REDACTED>" for k in secret_dict["data"].keys()}
+        return yaml.safe_dump(secret_dict, default_flow_style=False)
+    except Exception as e:
+        return f"Error fetching manifest: {e}"

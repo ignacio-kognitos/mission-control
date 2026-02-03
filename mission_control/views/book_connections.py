@@ -2,7 +2,7 @@
 
 from fasthtml.common import *
 
-from ..components import link, resource_table
+from ..components import filterable_table, link
 from ..config import DEFAULT_NAMESPACE
 from ..k8s import get_book_connections, get_kube_contexts, get_pod_metrics
 
@@ -27,7 +27,7 @@ def book_connections_content(namespace: str = DEFAULT_NAMESPACE, url: str = ""):
     return Div(
         H2("Book Connections"),
         *inputs,
-        resource_table(headers, rows),
+        filterable_table(headers, rows, "book-connections-table"),
     )
 
 
