@@ -1,0 +1,12 @@
+{
+  "navigation": {
+    "b": "/books",
+    "c": "/book-connections",
+    "t": "/trigger-instances",
+    "d": "/deployments",
+    "s": "/secrets"
+  },
+  "actions": {
+    "Escape": "closeModal"
+  }
+}

@@ -85,6 +85,40 @@ app, rt = fast_app(
                     }
                 }
             }
+
+            // Load keyboard shortcuts
+            document.addEventListener('DOMContentLoaded', async () => {
+                let shortcuts = { navigation: {}, actions: {} };
+                try {
+                    const response = await fetch('/keyboard-shortcuts.json');
+                    shortcuts = await response.json();
+                } catch (e) {
+                    console.warn('Could not load keyboard shortcuts:', e);
+                }
+
+                document.addEventListener('keydown', (e) => {
+                    // Ignore if typing in input or textarea
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                        return;
+                    }
+
+                    // Handle navigation shortcuts
+                    const nav = shortcuts.navigation && shortcuts.navigation[e.key];
+                    if (nav) {
+                        htmx.ajax('GET', nav, {target: '#main-content', swap: 'innerHTML'});
+                        history.pushState({}, '', nav);
+                        return;
+                    }
+
+                    // Handle Escape to close modal
+                    if (e.key === 'Escape') {
+                        const modal = document.getElementById('modal-overlay');
+                        if (modal) {
+                            htmx.ajax('GET', '/close-manifest', {target: '#modal-container', swap: 'innerHTML'});
+                        }
+                    }
+                });
+            });
         """),
     ),
 )
@@ -123,6 +157,16 @@ def post(context: str):
 @rt("/close-manifest")
 def get():
     return ""
+
+
+@rt("/keyboard-shortcuts.json")
+def get():
+    from starlette.responses import Response
+
+    shortcuts_path = Path(__file__).parent / "keyboard-shortcuts.json"
+    if shortcuts_path.exists():
+        return Response(shortcuts_path.read_text(), media_type="application/json")
+    return Response('{"navigation": {}, "actions": {}}', media_type="application/json")
 
 
 # -----------------------------------------------------------------------------
