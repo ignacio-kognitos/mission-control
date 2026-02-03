@@ -1,0 +1,9 @@
+{
+  "navigation": {
+    "b": "/books",
+    "c": "/book-connections"
+  },
+  "actions": {
+    "Escape": "closeModal"
+  }
+}
