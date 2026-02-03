@@ -48,6 +48,7 @@ app, rt = fast_app(
     hdrs=(
         Link(rel="icon", type="image/png", href="/static/favicon.png"),
         Style("""
+            * { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
             .htmx-indicator { display: none; }
             .htmx-request .htmx-indicator,
             .htmx-request.htmx-indicator { display: inline-block; }
@@ -298,4 +299,7 @@ def get(namespace: str, name: str):
 # Run
 # -----------------------------------------------------------------------------
 
-serve()
+if __name__ == "__main__":
+    PORT = 5001
+    print(f"\n🚀 Mission Control: http://missioncontrol.localhost:{PORT}\n")
+    serve(host="0.0.0.0", port=PORT)

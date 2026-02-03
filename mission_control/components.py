@@ -19,9 +19,9 @@ def page_layout(*content):
             Main(
                 *content,
                 id="main-content",
-                style="flex: 1; padding: 0.5rem; overflow: hidden; min-width: 0;",
+                style="flex: 1; padding: 1rem; overflow: hidden; min-width: 0;",
             ),
-            style="display: flex; flex: 1;",
+            style="display: flex; flex: 1; margin-top: 0.5rem;",
         ),
         Div(id="modal-container"),
         style="display: flex; flex-direction: column; min-height: 100vh;",
@@ -35,13 +35,13 @@ def _header():
             Img(
                 src="/static/logo.jpg",
                 alt="Mission Control",
-                style="height: 32px; width: 32px; border-radius: 4px;",
+                style="height: 24px; width: 24px; border-radius: 4px;",
             ),
-            Span("Mission Control", style="font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;"),
+            Span("Mission Control", style="font-weight: bold; font-size: 1rem; margin-left: 0.5rem;"),
             style="display: flex; align-items: center;",
         ),
         context_dropdown(),
-        style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid var(--pico-muted-border-color);",
+        style="display: flex; justify-content: space-between; align-items: center; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--pico-muted-border-color);",
     )
 
 
@@ -106,7 +106,7 @@ def context_dropdown():
         hx_post="/switch-context",
         hx_on__after_request="window.location.reload()",
         id="context-dropdown",
-        style="min-width: 200px;",
+        style="margin: 0; padding: 0.25rem 0.5rem; font-size: 0.85rem; width: auto;",
     )
 
 
@@ -120,7 +120,7 @@ def context_dropdown_oob():
         hx_on__after_request="window.location.reload()",
         id="context-dropdown",
         hx_swap_oob="true",
-        style="min-width: 200px;",
+        style="margin: 0; padding: 0.25rem 0.5rem; font-size: 0.85rem; width: auto;",
     )
 
 
@@ -148,7 +148,7 @@ def manifest_modal(content: str, title: str):
                 Code(content),
                 style="background: var(--pico-code-background-color); padding: 0.5rem; overflow: auto; max-height: 70vh; margin: 0; white-space: pre; font-size: 0.85rem;",
             ),
-            style="background: var(--pico-background-color); padding: 1rem; border-radius: 8px; max-width: 800px; width: 90%; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;",
+            style="background: var(--pico-background-color); padding: 1rem; border-radius: 8px; max-width: 95vw; width: 95vw; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;",
         ),
         hx_get="/close-manifest",
         hx_target="#modal-container",
