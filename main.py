@@ -64,6 +64,21 @@ app, rt = fast_app(
                 document.getElementById('global-loader').style.display = 'block');
             document.addEventListener('htmx:afterRequest', () =>
                 document.getElementById('global-loader').style.display = 'none');
+
+            function filterTable(tableId) {
+                const input = document.getElementById(tableId + '-filter');
+                const filter = input.value.toLowerCase();
+                const tbody = document.getElementById(tableId + '-body');
+                const rows = tbody.getElementsByTagName('tr');
+
+                for (let row of rows) {
+                    const firstCell = row.getElementsByTagName('td')[0];
+                    if (firstCell) {
+                        const text = firstCell.textContent.toLowerCase();
+                        row.style.display = text.includes(filter) ? '' : 'none';
+                    }
+                }
+            }
         """),
     ),
 )
