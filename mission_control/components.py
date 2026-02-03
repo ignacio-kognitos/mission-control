@@ -59,6 +59,33 @@ def sidebar():
                     hx_push_url="true",
                 )
             ),
+            Li(
+                A(
+                    "Trigger Instances",
+                    hx_get="/trigger-instances",
+                    hx_target="#main-content",
+                    hx_swap="innerHTML",
+                    hx_push_url="true",
+                )
+            ),
+            Li(
+                A(
+                    "Deployments",
+                    hx_get="/deployments",
+                    hx_target="#main-content",
+                    hx_swap="innerHTML",
+                    hx_push_url="true",
+                )
+            ),
+            Li(
+                A(
+                    "Secrets",
+                    hx_get="/secrets",
+                    hx_target="#main-content",
+                    hx_swap="innerHTML",
+                    hx_push_url="true",
+                )
+            ),
             style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;",
         ),
         style="min-width: 180px; padding: 0.5rem; border-right: 1px solid var(--pico-muted-border-color);",
