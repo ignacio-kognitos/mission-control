@@ -34,6 +34,7 @@ def is_auth_error(exception: Exception) -> bool:
     error_str = str(exception).lower()
     auth_indicators = [
         "unauthorized",
+        "must be logged in",
         "401",
         "403",
         "forbidden",

@@ -11,6 +11,12 @@ from kubernetes.dynamic import DynamicClient
 from .auth import get_env_from_context, is_auth_error, perform_login
 from .config import DEFAULT_NAMESPACE, KUBECONFIG_PATH
 
+
+class AuthError(Exception):
+    """Raised when authentication fails."""
+
+    pass
+
 # -----------------------------------------------------------------------------
 # Client & Context
 # -----------------------------------------------------------------------------
@@ -29,15 +35,14 @@ def with_auto_login(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception as e:
-            if is_auth_error(e):
-                # Get current context and try to login
-                _, current_context = get_kube_contexts()
-                if current_context and get_env_from_context(current_context):
-                    success, _ = perform_login(current_context)
-                    if success:
-                        # Retry the operation after login
-                        return func(*args, **kwargs)
+        except AuthError as e:
+            # Get current context and try to login
+            _, current_context = get_kube_contexts()
+            if current_context and get_env_from_context(current_context):
+                success, _ = perform_login(current_context)
+                if success:
+                    # Retry the operation after login
+                    return func(*args, **kwargs)
             raise
 
     return wrapper
@@ -84,7 +89,9 @@ def get_books(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
         books = book_resource.get(namespace=namespace)
 
         return [_extract_resource_info(book) for book in books.items]
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return []
 
 
@@ -97,6 +104,8 @@ def get_book_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
         book = book_resource.get(name=name, namespace=namespace)
         return yaml.safe_dump(book.to_dict(), default_flow_style=False)
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching manifest: {e}"
 
 
@@ -123,7 +132,9 @@ def get_book_connections(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
             }
             for conn in connections.items
         ]
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return []
 
 
@@ -136,6 +147,8 @@ def get_book_connection_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) 
         conn = bc_resource.get(name=name, namespace=namespace)
         return yaml.safe_dump(conn.to_dict(), default_flow_style=False)
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching manifest: {e}"
 
 
@@ -162,7 +175,9 @@ def get_associated_pod(bookconnection_name: str, namespace: str = DEFAULT_NAMESP
                 "phase": pod.status.phase if pod.status else "Unknown",
             }
         return None
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return None
 
 
@@ -175,6 +190,8 @@ def get_pod_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
         pod = pod_resource.get(name=name, namespace=namespace)
         return yaml.safe_dump(pod.to_dict(), default_flow_style=False)
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching manifest: {e}"
 
 
@@ -187,6 +204,8 @@ def get_pod_logs(name: str, namespace: str = DEFAULT_NAMESPACE, tail_lines: int 
         logs = v1.read_namespaced_pod_log(name=name, namespace=namespace, tail_lines=tail_lines)
         return logs if logs else "No logs available"
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching logs: {e}"
 
 
@@ -211,7 +230,9 @@ def get_pod_metrics(name: str, namespace: str = DEFAULT_NAMESPACE) -> dict | Non
             )
 
         return {"containers": containers}
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return None
 
 
@@ -282,7 +303,9 @@ def get_trigger_instances(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
         instances = resource.get(namespace=namespace)
 
         return [_extract_resource_info(instance) for instance in instances.items]
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return []
 
 
@@ -295,6 +318,8 @@ def get_trigger_instance_manifest(name: str, namespace: str = DEFAULT_NAMESPACE)
         instance = resource.get(name=name, namespace=namespace)
         return yaml.safe_dump(instance.to_dict(), default_flow_style=False)
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching manifest: {e}"
 
 
@@ -325,7 +350,9 @@ def get_deployments(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
             }
             for d in deployments.items
         ]
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return []
 
 
@@ -338,6 +365,8 @@ def get_deployment_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> st
         deployment = resource.get(name=name, namespace=namespace)
         return yaml.safe_dump(deployment.to_dict(), default_flow_style=False)
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching manifest: {e}"
 
 
@@ -364,7 +393,9 @@ def get_secrets(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
             }
             for s in secrets.items
         ]
-    except Exception:
+    except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return []
 
 
@@ -381,4 +412,6 @@ def get_secret_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
             secret_dict["data"] = {k: "<REDACTED>" for k in secret_dict["data"].keys()}
         return yaml.safe_dump(secret_dict, default_flow_style=False)
     except Exception as e:
+        if is_auth_error(e):
+            raise AuthError(str(e)) from e
         return f"Error fetching manifest: {e}"
