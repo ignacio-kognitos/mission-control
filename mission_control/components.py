@@ -24,6 +24,7 @@ def page_layout(*content):
             style="display: flex; flex: 1; margin-top: 0.5rem;",
         ),
         Div(id="modal-container"),
+        Div(id="toast-container"),
         style="display: flex; flex-direction: column; min-height: 100vh;",
     )
 
@@ -97,10 +98,18 @@ def sidebar():
 # -----------------------------------------------------------------------------
 
 
+def _is_login_supported(context: str) -> bool:
+    """Check if login is supported for the given context."""
+    for env in ("dev", "stg", "prod"):
+        if f"kognitos-{env}" in context:
+            return True
+    return False
+
+
 def context_dropdown():
-    """Render the kube context dropdown."""
+    """Render the kube context dropdown with optional login button."""
     contexts, current = get_kube_contexts()
-    return Select(
+    dropdown = Select(
         *[Option(ctx, value=ctx, selected=(ctx == current)) for ctx in contexts],
         name="context",
         hx_post="/switch-context",
@@ -109,18 +118,63 @@ def context_dropdown():
         style="margin: 0; padding: 0.25rem 0.5rem; font-size: 0.85rem; width: auto;",
     )
 
+    login_button = Button(
+        "Log in",
+        hx_post="/login-context",
+        hx_swap="none",
+        hx_on__after_request="window.location.reload()",
+        id="login-button",
+        style="margin: 0; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.85rem;",
+    ) if _is_login_supported(current) else None
+
+    if login_button:
+        return Div(
+            dropdown,
+            login_button,
+            id="context-container",
+            style="display: flex; align-items: center;",
+        )
+    return Div(
+        dropdown,
+        id="context-container",
+        style="display: flex; align-items: center;",
+    )
+
 
 def context_dropdown_oob():
     """Render the kube context dropdown with out-of-band swap."""
     contexts, current = get_kube_contexts()
-    return Select(
+    dropdown = Select(
         *[Option(ctx, value=ctx, selected=(ctx == current)) for ctx in contexts],
         name="context",
         hx_post="/switch-context",
         hx_on__after_request="window.location.reload()",
         id="context-dropdown",
-        hx_swap_oob="true",
         style="margin: 0; padding: 0.25rem 0.5rem; font-size: 0.85rem; width: auto;",
+    )
+
+    login_button = Button(
+        "Log in",
+        hx_post="/login-context",
+        hx_swap="none",
+        hx_on__after_request="window.location.reload()",
+        id="login-button",
+        style="margin: 0; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.85rem;",
+    ) if _is_login_supported(current) else None
+
+    if login_button:
+        return Div(
+            dropdown,
+            login_button,
+            id="context-container",
+            hx_swap_oob="true",
+            style="display: flex; align-items: center;",
+        )
+    return Div(
+        dropdown,
+        id="context-container",
+        hx_swap_oob="true",
+        style="display: flex; align-items: center;",
     )
 
 
