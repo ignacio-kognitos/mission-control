@@ -12,6 +12,7 @@ from fasthtml.common import *
 from starlette.requests import Request
 from starlette.staticfiles import StaticFiles
 
+from mission_control.auth import perform_login, reset_login_flag, was_login_performed
 from mission_control.components import context_dropdown_oob, manifest_modal, page_layout
 from mission_control.config import DEFAULT_NAMESPACE, ENV_CONTEXT_PATTERNS
 from mission_control.k8s import (
@@ -65,6 +66,31 @@ app, rt = fast_app(
                 50% { transform: translateX(0%); }
                 100% { transform: translateX(100%); }
             }
+            #toast-container {
+                position: fixed;
+                bottom: 1rem;
+                right: 1rem;
+                z-index: 10000;
+            }
+            .toast {
+                background: var(--pico-primary);
+                color: white;
+                padding: 0.75rem 1rem;
+                border-radius: 4px;
+                margin-top: 0.5rem;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            }
+            .toast.success { background: #2e7d32; }
+            .toast.error { background: #c62828; }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
         """),
         Script("""
             document.addEventListener('htmx:beforeRequest', () =>
@@ -86,6 +112,33 @@ app, rt = fast_app(
                     }
                 }
             }
+
+            // Toast notification system
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                toast.className = 'toast ' + type;
+                toast.textContent = message;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            }
+
+            // Check for auto-login after each request
+            document.addEventListener('htmx:afterRequest', async (e) => {
+                try {
+                    const response = await fetch('/check-login-status');
+                    const data = await response.json();
+                    if (data.logged_in) {
+                        showToast('Auto-logged in to ' + data.env, 'success');
+                    }
+                } catch (err) {
+                    // Ignore errors
+                }
+            });
 
             // Load keyboard shortcuts
             document.addEventListener('DOMContentLoaded', async () => {
@@ -155,6 +208,33 @@ def post(context: str):
     return ""
 
 
+@rt("/login-context")
+def post():
+    from starlette.responses import Response
+
+    _, current_context = get_kube_contexts()
+    success, message = perform_login(current_context)
+
+    if not success:
+        return Response(message, status_code=400)
+    return ""
+
+
+@rt("/check-login-status")
+def get():
+    import json
+
+    from mission_control.auth import get_env_from_context
+    from starlette.responses import Response
+
+    if was_login_performed():
+        _, current_context = get_kube_contexts()
+        env = get_env_from_context(current_context) or "unknown"
+        reset_login_flag()
+        return Response(json.dumps({"logged_in": True, "env": env}), media_type="application/json")
+    return Response(json.dumps({"logged_in": False}), media_type="application/json")
+
+
 @rt("/close-manifest")
 def get():
     return ""
@@ -162,11 +242,15 @@ def get():
 
 @rt("/keyboard-shortcuts.json")
 def get():
+    import json
+
     from starlette.responses import Response
 
-    shortcuts_path = Path(__file__).parent / "keyboard-shortcuts.json"
-    if shortcuts_path.exists():
-        return Response(shortcuts_path.read_text(), media_type="application/json")
+    config_path = Path(__file__).parent / "config.json"
+    if config_path.exists():
+        config = json.loads(config_path.read_text())
+        shortcuts = config.get("keyboard_shortcuts", {"navigation": {}, "actions": {}})
+        return Response(json.dumps(shortcuts), media_type="application/json")
     return Response('{"navigation": {}, "actions": {}}', media_type="application/json")
 
 
