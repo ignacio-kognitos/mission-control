@@ -17,7 +17,7 @@ def books_content(namespace: str = DEFAULT_NAMESPACE):
             P(f"No books found in the {namespace} namespace."),
         )
 
-    headers = ["Resource Name", "Name", "Version", "Namespace", "Created"]
+    headers = ["Resource Name", "Name", "Version", "BDK Version", "Namespace", "Created"]
     rows = [_book_row(book) for book in books]
 
     return Div(
@@ -30,8 +30,9 @@ def _book_row(book: dict):
     """Render a single book row."""
     return Tr(
         Td(link(book["name"], f"/book/{book['namespace']}/{book['name']}")),
-        Td(book["label_name"]),
-        Td(book["label_version"]),
+        Td(book["spec_name"]),
+        Td(book["spec_version"]),
+        Td(book["bdk_version"]),
         Td(book["namespace"]),
         Td(book["created"]),
     )

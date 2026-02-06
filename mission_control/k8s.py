@@ -58,9 +58,22 @@ def get_books(namespace: str = DEFAULT_NAMESPACE) -> list[dict]:
         book_resource = dyn_client.resources.get(kind="Book")
         books = book_resource.get(namespace=namespace)
 
-        return [_extract_resource_info(book) for book in books.items]
+        return [_extract_book_info(book) for book in books.items]
     except Exception:
         return []
+
+
+def _extract_book_info(book) -> dict:
+    """Extract book info from a Book resource, including spec fields."""
+    spec = book.spec or {}
+    return {
+        "name": book.metadata.name,
+        "namespace": book.metadata.namespace,
+        "created": book.metadata.creationTimestamp,
+        "spec_name": spec.get("name", ""),
+        "spec_version": spec.get("version", ""),
+        "bdk_version": spec.get("bdkVersion", ""),
+    }
 
 
 def get_book_manifest(name: str, namespace: str = DEFAULT_NAMESPACE) -> str:
